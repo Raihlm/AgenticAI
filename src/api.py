@@ -4,12 +4,15 @@
 import os
 import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 # Add parent directory to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional, List
 
@@ -76,7 +79,8 @@ class ToolInfo(BaseModel):
     description: str
 
 
-@app.get("/")
+# API routes under /api prefix
+@app.get("/api")
 async def root():
     """API health check."""
     return {
@@ -86,7 +90,7 @@ async def root():
     }
 
 
-@app.get("/tools", response_model=List[ToolInfo])
+@app.get("/api/tools", response_model=List[ToolInfo])
 async def list_tools():
     """List all available tools."""
     from src.agent.tools_registry import get_all_tools
@@ -95,7 +99,7 @@ async def list_tools():
     return [{"name": t.name, "description": t.description} for t in tools]
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post("/api/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     """
     Chat with the AI agent.
@@ -138,7 +142,7 @@ async def chat(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/memory")
+@app.get("/api/memory")
 async def get_memory_info():
     """Get current memory information."""
     memory = get_memory()
@@ -149,7 +153,7 @@ async def get_memory_info():
     }
 
 
-@app.post("/memory/clear")
+@app.post("/api/memory/clear")
 async def clear_memory():
     """Clear conversation memory."""
     from src.agent.memory import reset_memory
@@ -158,7 +162,7 @@ async def clear_memory():
     return {"status": "Memory cleared"}
 
 
-@app.get("/models")
+@app.get("/api/models")
 async def list_models():
     """List available Ollama models."""
     import requests
@@ -183,9 +187,25 @@ async def list_models():
     }
 
 
+# SPA Fallback - serve React app for all non-API routes
+frontend_dir = Path(__file__).parent.parent / "frontend" / "dist"
+
+if frontend_dir.exists():
+    app.mount("/assets", StaticFiles(directory=frontend_dir / "assets"), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        """Serve React app for all non-API routes."""
+        # Don't serve index.html for API routes
+        if full_path.startswith("api/") or full_path.startswith("docs") or full_path.startswith("openapi"):
+            raise HTTPException(status_code=404)
+        return FileResponse(frontend_dir / "index.html")
+
+
 if __name__ == "__main__":
     import uvicorn
 
     print("Starting AgenticAI API server...")
-    print(f"Docs available at: http://localhost:8000/docs")
+    print(f"Web UI available at: http://localhost:8000")
+    print(f"API Docs available at: http://localhost:8000/docs")
     uvicorn.run(app, host="0.0.0.0", port=8000)

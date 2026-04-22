@@ -13,7 +13,7 @@ class Config:
 
     # Ollama settings
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-    DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "qwen3.5:latest")
+    DEFAULT_MODEL: str = os.getenv("DEFAULT_MODEL", "llama2:latest")
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "nomic-embed-text:latest")
 
     # API Keys (optional - some tools work without keys)

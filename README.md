@@ -41,10 +41,13 @@ An AI agent powered by **Ollama** (local LLMs) that can fetch real-time data inc
 
 ### Setup
 ```bash
-cd Documents/rayhan/AgenticAi
+cd Documents/rayhan/AgenticAi/AgenticAI
 
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
+
+# Install frontend dependencies
+cd frontend && npm install && cd ..
 
 # Copy environment file (optional - has sensible defaults)
 cp .env.example .env
@@ -58,7 +61,18 @@ For enhanced functionality, add these to `.env`:
 
 ## Usage
 
-### CLI Mode (Recommended)
+### Web UI (Recommended)
+```bash
+# Build frontend first
+cd frontend && npm install && npm run build && cd ..
+
+# Start the server
+python run_api.py
+```
+
+Then access: **http://localhost:8000** for the web interface
+
+### CLI Mode
 ```bash
 python main.py
 ```
@@ -102,24 +116,33 @@ curl -X POST http://localhost:8000/chat \
 
 ```
 AgenticAi/
-├── src/
-│   ├── agent/
-│   │   ├── agent.py       # LangGraph agent
-│   │   ├── state.py       # State management
-│   │   ├── memory.py      # Conversation memory
-│   │   ├── planner.py     # Multi-step planning
-│   │   └── tools_registry.py
-│   ├── tools/
-│   │   ├── weather.py     # Weather tool
-│   │   ├── news.py        # News tool
-│   │   └── search.py      # Search tool
-│   ├── config.py          # Configuration
-│   ├── cli.py             # CLI interface
-│   └── api.py             # REST API
-├── main.py                # CLI entry point
-├── run_api.py             # API entry point
-├── requirements.txt
-└── .env.example
+├── AgenticAI/
+│   ├── src/
+│   │   ├── agent/
+│   │   │   ├── agent.py       # LangGraph agent
+│   │   │   ├── state.py       # State management
+│   │   │   ├── memory.py      # Conversation memory
+│   │   │   ├── planner.py     # Multi-step planning
+│   │   │   └── tools_registry.py
+│   │   ├── tools/
+│   │   │   ├── weather.py     # Weather tool
+│   │   │   ├── news.py        # News tool
+│   │   │   └── search.py      # Search tool
+│   │   ├── config.py          # Configuration
+│   │   ├── cli.py             # CLI interface
+│   │   └── api.py             # REST API + SPA server
+│   ├── frontend/
+│   │   ├── src/
+│   │   │   ├── App.jsx        # Main chat interface
+│   │   │   ├── index.css      # Tailwind styles
+│   │   │   └── services/
+│   │   │       └── api.js     # API integration
+│   │   ├── dist/              # Built frontend (auto-generated)
+│   │   └── package.json
+│   ├── main.py                # CLI entry point
+│   ├── run_api.py             # API/Web server entry point
+│   ├── requirements.txt
+│   └── README.md
 ```
 
 ## Architecture
